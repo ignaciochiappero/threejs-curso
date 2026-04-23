@@ -1,93 +1,98 @@
 import { NavLink } from "react-router";
-import { MODULES, ROUTES } from "../routes";
+import { ROUTES } from "@/routes";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+function ModuleNav({ isCollapsed = false }: { isCollapsed?: boolean }) {
+  const routes = ROUTES;
+
+  return (
+    <div className={cn("mb-4 mt-10", isCollapsed ? "mx-2" : "mx-5")}>
+      <div className="space-y-1">
+        {routes.length === 0 ? (
+          <p
+            className={cn(
+              "text-xs text-muted-foreground py-1",
+              isCollapsed ? "px-1 text-center" : "px-2",
+            )}
+          >
+            Sin prácticas
+          </p>
+        ) : (
+          routes.map((route) => (
+            <NavLink
+              key={route.id}
+              to={route.path}
+              title={isCollapsed ? route.title : undefined}
+              className={({ isActive }) =>
+                cn(
+                  "block text-sm rounded-md transition-colors",
+                  isCollapsed
+                    ? "px-2 py-2 text-center font-medium"
+                    : "px-3 py-1.5",
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent",
+                )
+              }
+            >
+              {isCollapsed ? route.title.charAt(0) : route.title}
+            </NavLink>
+          ))
+        )}
+      </div>
+    </div>
+  );
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+
+  const sidebarContent = (isCollapsed = false) => (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto py-4">
+        <ModuleNav isCollapsed={isCollapsed} />
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {/* Overlay cuando está abierto */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Mobile */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetTrigger className="lg:hidden shrink-0 p-2">
+          <Menu className="h-5 w-5" />
+        </SheetTrigger>
+        <SheetContent side="left" className="w-72 p-0">
+          {sidebarContent(false)}
+        </SheetContent>
+      </Sheet>
 
-      {/* Sidebar */}
+      {/* Desktop */}
       <aside
-        className={`
-          fixed top-0 left-0 z-50 h-full w-72 bg-gray-900 text-white
-          transform transition-transform duration-300 ease-in-out
-          lg:translate-x-0 lg:static lg:z-auto
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
+        className={cn(
+          "hidden lg:block border-r h-screen sticky top-0 overflow-y-auto transition-all duration-200",
+          desktopCollapsed ? "w-20" : "w-72",
+        )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            Three.js Course
-          </h1>
-          <button
-            onClick={onClose}
-            className="lg:hidden p-2 hover:bg-gray-800 rounded"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Progress */}
-        <div className="p-4 border-b border-gray-700">
-          <div className="flex justify-between text-sm text-gray-400 mb-2">
-            <span>Progreso</span>
-            <span>0 / {ROUTES.length}</span>
-          </div>
-          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 w-0" />
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="h-[calc(100vh-140px)] overflow-y-auto p-2">
-          {MODULES.map((module) => (
-            <div key={module.number} className="mb-2">
-              {/* Module Header */}
-              <button
-                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition-colors text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center justify-center w-7 h-7 rounded bg-gray-700 text-sm font-medium">
-                    {module.number}
-                  </span>
-                  <span className="font-medium">{module.title}</span>
-                </div>
-              </button>
-
-              {/* Routes del módulo */}
-              <div className="ml-4 mt-1 space-y-1">
-                {module.routes.map((route) => (
-                  <NavLink
-                    key={route.id}
-                    to={route.path}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      `block p-2 pl-10 rounded text-sm transition-colors ${
-                        isActive
-                          ? "bg-cyan-500/20 text-cyan-400 border-l-2 border-cyan-400"
-                          : "text-gray-400 hover:text-white hover:bg-gray-800"
-                      }`
-                    }
-                  >
-                    {route.title}
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
+        <button
+          type="button"
+          className="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md border bg-background text-muted-foreground hover:text-foreground"
+          onClick={() => setDesktopCollapsed((prev) => !prev)}
+          aria-label={
+            desktopCollapsed ? "Expandir sidebar" : "Compactar sidebar"
+          }
+        >
+          {desktopCollapsed ? (
+            <PanelLeftOpen className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
+        </button>
+        {sidebarContent(desktopCollapsed)}
       </aside>
     </>
   );
