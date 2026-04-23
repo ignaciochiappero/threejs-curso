@@ -17,7 +17,7 @@ import DragDropPage from "@/pages/13-drag-drop";
 import PhysicsPage from "@/pages/14-physics";
 import PostProcessingPage from "@/pages/15-post-processing";
 import InstancedMeshPage from "@/pages/17-intanced-mesh";
-import MiniGamePage from "@/pages/24-mini-game";
+import MiniGamePage from "@/pages/18-mini-game";
 
 export interface Route {
   id: string;
